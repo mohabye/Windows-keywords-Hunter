@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Windows Forensic Malware Hunter</title>
+    <style>
+        :root {
+            --color-bg-primary: #0d1117;
+            --color-bg-secondary: #161b22;
+            --color-surface: #1c2128;
+            --color-text-primary: #c9d1d9;
+            --color-text-secondary: #8b949e;
+            --color-primary: #58a6ff;
+            --color-danger: #f85149;
+            --color-success: #3fb950;
+            --color-warning: #d29922;
+            --color-border: #30363d;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+        }
+
+        .container { 
+            max-width: 1600px; 
+            margin: 0 auto; 
+            padding: 1.5rem; 
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 2rem;
+            background: var(--color-bg-secondary);
+        }
+
+        .header-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            color: var(--color-primary);
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            background: var(--color-bg-secondary);
+            border-radius: 6px 6px 0 0;
+            border: 1px solid var(--color-border);
+            border-bottom: none;
+        }
+
+        .tab {
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            color: var(--color-text-secondary);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab:hover {
+            color: var(--color-primary);
+            background: var(--color-surface);
+        }
+
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-primary);
+            background: var(--color-surface);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 0 0 6px 6px;
+            padding: 1.5rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-box {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-left: 3px solid var(--color-primary);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            color: var(--color-text-primary);
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: var(--color-primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.6rem;
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            color: var(--color-text-primary);
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        input[type="file"] {
+            cursor: pointer;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select:focus,
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2ea043;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-surface);
+        }
+
+        .btn-danger {
+            background: var(--color-danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da3633;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: var(--color-bg-secondary);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--color-border);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .severity-box {
+            background: var(--color-bg-secondary);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--color-border);
+            margin-top: 1rem;
+        }
+
+        .severity-label {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.3rem;
+        }
+
+        .severity-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--color-warning);
+        }
+
+        .results-section {
+            margin-top: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            color: var(--color-danger);
+            font-weight: 600;
+        }
+
+        .results-container {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            padding: 1rem;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-left: 3px solid var(--color-danger);
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .result-item.critical {
+            border-left-color: var(--color-danger);
+        }
+
+        .result-item.high {
+            border-left-color: #db6d28;
+        }
+
+        .result-item.medium {
+            border-left-color: var(--color-warning);
+        }
+
+        .result-item.low {
+            border-left-color: var(--color-primary);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-title {
+            color: var(--color-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .result-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-critical {
+            background: var(--color-danger);
+            color: white;
+        }
+
+        .badge-high {
+            background: #db6d28;
+            color: white;
+        }
+
+        .badge-medium {
+            background: var(--color-warning);
+            color: white;
+        }
+
+        .badge-low {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .result-content {
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            margin-top: 0.5rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+        }
+
+        .no-results {
+            text-align: center;
+            color: var(--color-text-secondary);
+            padding: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .keyword-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .keyword-badge {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .keyword-badge .remove-btn {
+            color: var(--color-danger);
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: var(--color-bg-secondary);
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        h2 {
+            color: var(--color-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        h3 {
+            color: var(--color-primary);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        li {
+            margin-bottom: 0.3rem;
+            color: var(--color-text-secondary);
+        }
+
+        code {
+            background: var(--color-bg-secondary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            color: var(--color-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-icon">🔍</div>
+            <h1> Windows keywords Hunter</h1>
+            <p class="subtitle">Deep threat hunting  detection</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('threat-hunter')">Threat Hunter</button>
+            <button class="tab" onclick="switchTab('keyword-manager')">Keyword Manager</button>
+            <button class="tab" onclick="switchTab('artifact-analysis')">Artifact Analysis</button>
+            <button class="tab" onclick="switchTab('results-export')">Results & Export</button>
+            <button class="tab" onclick="switchTab('documentation')">Documentation</button>
+        </div>
+
+        <!-- TAB 1: THREAT HUNTER -->
+        <div id="threat-hunter" class="tab-content active">
+            <div class="info-box">
+                🎯 <strong>Threat Hunter Module:</strong> Scan Windows event logs, command history, and forensic artifacts for indicators of compromise (IOCs) from malware families including PowerSploit, Cobalt Strike, Metasploit, Empire, and more. Now with dynamic category-based keyword filtering!
+            </div>
+
+            <div class="main-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span>🔧</span>
+                        <span class="panel-title">Hunt Configuration</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Log File Path (CSV/EVTX exported):</label>
+                        <input type="file" id="logFile" accept=".csv,.evtx,.xml,.txt,.log" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Hunt Type:</label>
+                        <select id="huntType">
+                            <option value="all">All Threats</option>
+                            <option value="powersploit">PowerSploit</option>
+                            <option value="cobalt-strike">Cobalt Strike</option>
+                            <option value="metasploit">Metasploit</option>
+                            <option value="empire">Empire</option>
+                            <option value="mimikatz">Mimikatz</option>
+                            <option value="bloodhound">BloodHound/SharpHound</option>
+                            <option value="lolbas">Living Off The Land (LOLBAS)</option>
+                            <option value="persistence">Persistence Mechanisms</option>
+                            <option value="lateral-movement">Lateral Movement</option>
+                            <option value="privilege-escalation">Privilege Escalation</option>
+                            <option value="credential-access">Credential Access</option>
+                            <option value="defense-evasion">Defense Evasion</option>
+                            <option value="discovery">Discovery</option>
+                            <option value="execution">Execution</option>
+                            <option value="exfiltration">Exfiltration</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Detection Strategy:</label>
+                        <select id="detectionStrategy">
+                            <option value="keyword">Keyword Matching</option>
+                            <option value="pattern">Pattern Recognition</option>
+                            <option value="behavioral">Behavioral Analysis</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Search Depth:</label>
+                        <select id="searchDepth">
+                            <option value="light">Light (Fast)</option>
+                            <option value="standard">Standard</option>
+                            <option value="deep">Deep (Thorough)</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="startThreatHunt()">▶ Start Threat Hunt</button>
+                        <button class="btn-secondary" onclick="resetHunt()">Reset</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <span>📊</span>
+                        <span class="panel-title">Hunt Statistics</span>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Events Scanned</div>
+                            <div class="stat-value" id="eventsScanned">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Threats Detected</div>
+                            <div class="stat-value" id="threatsDetected">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Risk Score</div>
+                            <div class="stat-value" id="riskScore">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="severity-box">
+                        <div class="severity-label">Severity</div>
+                        <div class="severity-value" id="severityLevel">LOW</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="section-header">
+                    <span>🎯</span>
+                    <span class="section-title">Detected Threats</span>
+                </div>
+                <div class="results-container" id="resultsContainer">
+                    <div class="no-results">No threats detected yet. Upload a log file and start the hunt.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: KEYWORD MANAGER -->
+        <div id="keyword-manager" class="tab-content">
+            <div class="info-box">
+                📝 <strong>Keyword Manager:</strong> Manage detection keywords for PowerSploit, Cobalt Strike, Empire, Metasploit, and other exploitation tools. Add custom keywords for specific threats.
+            </div>
+
+            <div class="main-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span>➕</span>
+                        <span class="panel-title">Add New Keyword</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Keyword / IOC:</label>
+                        <input type="text" id="newKeyword" placeholder="e.g., Invoke-Mimikatz" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category:</label>
+                        <select id="keywordCategory">
+                            <option value="powersploit">PowerSploit</option>
+                            <option value="cobalt-strike">Cobalt Strike</option>
+                            <option value="metasploit">Metasploit</option>
+                            <option value="empire">Empire</option>
+                            <option value="mimikatz">Mimikatz</option>
+                            <option value="bloodhound">BloodHound</option>
+                            <option value="lolbas">LOLBAS</option>
+                            <option value="persistence">Persistence</option>
+                            <option value="lateral-movement">Lateral Movement</option>
+                            <option value="privilege-escalation">Privilege Escalation</option>
+                            <option value="credential-access">Credential Access</option>
+                            <option value="defense-evasion">Defense Evasion</option>
+                            <option value="discovery">Discovery</option>
+                            <option value="execution">Execution</option>
+                            <option value="exfiltration">Exfiltration</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="addKeyword()">Add Keyword</button>
+                        <button class="btn-secondary" onclick="showAllKeywords()">View All Keywords</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <span>📊</span>
+                        <span class="panel-title">Keyword Statistics</span>
+                    </div>
+                    <div id="keywordStats" style="font-size: 0.9rem;">
+                        <p>Total Keywords: <strong id="totalKeywords">0</strong></p>
+                        <p style="margin-top: 0.5rem;">Keywords by Category:</p>
+                        <div id="categoryBreakdown" style="margin-top: 0.5rem; font-size: 0.85rem;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 1.5rem;">
+                <div class="panel-header">
+                    <span>🏷️</span>
+                    <span class="panel-title">Active Keywords</span>
+                </div>
+                <div id="keywordList" class="keyword-grid"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: ARTIFACT ANALYSIS -->
+        <div id="artifact-analysis" class="tab-content">
+            <div class="info-box">
+                🔬 <strong>Artifact Analysis:</strong> Guidance for analyzing Windows forensic artifacts including Event Logs, Sysmon, Prefetch, AmCache, Registry, and more.
+            </div>
+
+            <div class="main-grid">
+                <div class="panel">
+                    <h3>📂 Common Artifacts</h3>
+                    <ul>
+                        <li><strong>Security Event Logs:</strong> C:\Windows\System32\winevt\Logs\Security.evtx</li>
+                        <li><strong>Sysmon Logs:</strong> C:\Windows\System32\winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx</li>
+                        <li><strong>PowerShell History:</strong> %APPDATA%\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt</li>
+                        <li><strong>Prefetch:</strong> C:\Windows\Prefetch\*.pf</li>
+                        <li><strong>AmCache:</strong> C:\Windows\AppCompat\Programs\Amcache.hve</li>
+                    </ul>
+                </div>
+
+                <div class="panel">
+                    <h3>🔍 Key Event IDs</h3>
+                    <table>
+                        <tr>
+                            <th>Event ID</th>
+                            <th>Description</th>
+                        </tr>
+                        <tr>
+                            <td>4688</td>
+                            <td>Process Creation</td>
+                        </tr>
+                        <tr>
+                            <td>4689</td>
+                            <td>Process Exit</td>
+                        </tr>
+                        <tr>
+                            <td>4624</td>
+                            <td>Successful Logon</td>
+                        </tr>
+                        <tr>
+                            <td>4625</td>
+                            <td>Failed Logon</td>
+                        </tr>
+                        <tr>
+                            <td>7045</td>
+                            <td>Service Installed</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: RESULTS & EXPORT -->
+        <div id="results-export" class="tab-content">
+            <div class="info-box">
+                📊 <strong>Results & Export:</strong> Export detection results to CSV, JSON, or generate comprehensive reports.
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span>💾</span>
+                    <span class="panel-title">Export Options</span>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="exportToCSV()">📥 Export to CSV</button>
+                    <button class="btn-primary" onclick="exportToJSON()">📥 Export to JSON</button>
+                    <button class="btn-secondary" onclick="generateReport()">📄 Generate Report</button>
+                </div>
+
+                <div style="margin-top: 1.5rem; padding: 1rem; background: var(--color-bg-secondary); border-radius: 4px;">
+                    <h3 style="margin-top: 0;">Detection Summary</h3>
+                    <p>Total Detections: <strong id="exportTotalDetections">0</strong></p>
+                    <p>Critical: <strong style="color: var(--color-danger);" id="exportCritical">0</strong></p>
+                    <p>High: <strong style="color: #db6d28;" id="exportHigh">0</strong></p>
+                    <p>Medium: <strong style="color: var(--color-warning);" id="exportMedium">0</strong></p>
+                    <p>Low: <strong style="color: var(--color-primary);" id="exportLow">0</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: DOCUMENTATION -->
+        <div id="documentation" class="tab-content">
+            <div class="panel">
+                <h2>📚 Advanced Windows Forensic Malware Hunter - Documentation</h2>
+
+                <h3>🎯 Overview</h3>
+                <p>This tool provides comprehensive threat detection for Windows systems by scanning event logs, command history, and forensic artifacts for indicators of compromise (IOCs) from various malware families and exploitation frameworks.</p>
+
+                <h3>✨ New Features</h3>
+                <ul>
+                    <li><strong>Dynamic Category Filtering:</strong> Select specific threat types to search only relevant keywords, reducing false positives</li>
+                    <li><strong>CSV Parser:</strong> Reads and processes comma-separated log files with proper field extraction</li>
+                    <li><strong>EVTX/XML Support:</strong> Parses Windows Event Viewer exports in XML format</li>
+                    <li><strong>1000+ Threat Keywords:</strong> Comprehensive detection database across 15+ threat categories</li>
+                    <li><strong>Real-time Statistics:</strong> Live dashboard showing events scanned, threats detected, risk score, and severity</li>
+                </ul>
+
+                <h3>🔴 Threat Categories</h3>
+
+                <h3>PowerSploit (25+ keywords)</h3>
+                <p>PowerShell post-exploitation framework detection:</p>
+                <ul>
+                    <li><code>Invoke-Mimikatz</code> - In-memory credential dumping</li>
+                    <li><code>Invoke-DllInjection</code> - DLL injection attacks</li>
+                    <li><code>Invoke-ReflectivePEInjection</code> - Reflective PE loading</li>
+                    <li><code>Invoke-Shellcode</code> - Shellcode execution</li>
+                    <li><code>Get-Keystrokes</code> - Keylogger functionality</li>
+                    <li><code>Get-GPPPassword</code> - Group Policy password extraction</li>
+                    <li><code>PowerView</code> - Active Directory enumeration</li>
+                    <li><code>PowerUp</code> - Privilege escalation toolkit</li>
+                </ul>
+
+                <h3>Cobalt Strike (22+ keywords)</h3>
+                <p>Commercial penetration testing tool indicators:</p>
+                <ul>
+                    <li>beacon.x64.dll / beacon signatures</li>
+                    <li>execute-assembly, shinject, shspawn commands</li>
+                    <li>malleable C2 profiles and HTTP beacons</li>
+                    <li>Named pipe communication</li>
+                    <li>psexec, wmiexec lateral movement</li>
+                </ul>
+
+                <h3>Metasploit (13+ keywords)</h3>
+                <p>Exploitation framework indicators:</p>
+                <ul>
+                    <li>meterpreter sessions (reverse_tcp/https/http)</li>
+                    <li>multi/handler connections</li>
+                    <li>hashdump, getsystem commands</li>
+                    <li>Reflective DLL injection</li>
+                </ul>
+
+                <h3>Empire (7+ keywords)</h3>
+                <p>PowerShell Empire framework detection:</p>
+                <ul>
+                    <li>Empire agents and launchers</li>
+                    <li>PowerShell lateral movement modules</li>
+                    <li>Credential dumping modules</li>
+                </ul>
+
+                <h3>Mimikatz (8+ keywords)</h3>
+                <p>Credential dumping tool indicators:</p>
+                <ul>
+                    <li><code>sekurlsa::logonpasswords</code> - Extract passwords from memory</li>
+                    <li><code>lsadump::dcsync</code> - Domain Controller synchronization</li>
+                    <li><code>kerberos::golden</code> - Golden ticket attacks</li>
+                    <li><code>sekurlsa::pth</code> - Pass-the-hash attacks</li>
+                </ul>
+
+                <h3>LOLBAS (15+ keywords)</h3>
+                <p>Living Off The Land Binaries abuse:</p>
+                <ul>
+                    <li><code>certutil -urlcache</code> - File downloads</li>
+                    <li><code>bitsadmin /transfer</code> - Background file transfers</li>
+                    <li><code>regsvr32 /i:</code> - Scriptlet execution</li>
+                    <li><code>mshta vbscript:</code> - VBScript execution</li>
+                </ul>
+
+                <h3>Additional Categories</h3>
+                <ul>
+                    <li><strong>Persistence:</strong> Registry Run keys, scheduled tasks, services, WMI subscriptions</li>
+                    <li><strong>Lateral Movement:</strong> PSExec, WMI, WinRM, DCOM execution</li>
+                    <li><strong>Privilege Escalation:</strong> Token manipulation, UAC bypass, exploit tools</li>
+                    <li><strong>Credential Access:</strong> Kerberoasting, AS-REP roasting, NTDS dumping</li>
+                    <li><strong>Defense Evasion:</strong> AMSI bypass, obfuscation, log clearing</li>
+                    <li><strong>Discovery:</strong> Network enumeration, AD queries, process listing</li>
+                    <li><strong>Execution:</strong> PowerShell, WScript, command-line abuse</li>
+                    <li><strong>Exfiltration:</strong> Data compression, encoding, network transfers</li>
+                </ul>
+
+                <h3>📊 Windows Event IDs Reference</h3>
+                <table>
+                    <tr>
+                        <th>Event ID</th>
+                        <th>Source</th>
+                        <th>Description</th>
+                        <th>Use Case</th>
+                    </tr>
+                    <tr>
+                        <td>4688</td>
+                        <td>Security</td>
+                        <td>Process Creation</td>
+                        <td>Track command-line execution</td>
+                    </tr>
+                    <tr>
+                        <td>4689</td>
+                        <td>Security</td>
+                        <td>Process Exit</td>
+                        <td>Process termination tracking</td>
+                    </tr>
+                    <tr>
+                        <td>4702</td>
+                        <td>Security</td>
+                        <td>Scheduled Task Created</td>
+                        <td>Persistence mechanism detection</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>Sysmon</td>
+                        <td>Process Created</td>
+                        <td>Detailed process execution</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Sysmon</td>
+                        <td>Network Connection</td>
+                        <td>C2 communication detection</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>Sysmon</td>
+                        <td>CreateRemoteThread</td>
+                        <td>Process injection detection</td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>Sysmon</td>
+                        <td>Process Accessed</td>
+                        <td>LSASS dumping detection</td>
+                    </tr>
+                    <tr>
+                        <td>22</td>
+                        <td>Sysmon</td>
+                        <td>DNS Query</td>
+                        <td>C2 domain detection</td>
+                    </tr>
+                </table>
+
+                <h3>💡 Usage Guide</h3>
+                <ol>
+                    <li><strong>Upload Log File:</strong> Select a CSV or EVTX file exported from Windows Event Viewer</li>
+                    <li><strong>Select Hunt Type:</strong> Choose "All Threats" for comprehensive scan or specific category for focused detection</li>
+                    <li><strong>Configure Strategy:</strong> Select detection method (keyword matching, patterns, behavioral analysis)</li>
+                    <li><strong>Set Search Depth:</strong> Choose between Light (fast), Standard, or Deep (thorough) scanning</li>
+                    <li><strong>Start Hunt:</strong> Click "Start Threat Hunt" to begin analysis</li>
+                    <li><strong>Review Results:</strong> Examine detected threats with severity ratings and context</li>
+                    <li><strong>Export Data:</strong> Export findings to CSV/JSON for further analysis in SIEM or ticketing systems</li>
+                </ol>
+
+                <h3>🛡️ Best Practices</h3>
+                <ul>
+                    <li>Enable PowerShell script block logging (Event ID 4104) for better detection</li>
+                    <li>Enable command-line logging in Event ID 4688</li>
+                    <li>Deploy Sysmon for enhanced visibility</li>
+                    <li>Export Security.evtx: <code>wevtutil epl Security Security.evtx</code></li>
+                    <li>Use category-specific hunts when investigating known threat types</li>
+                    <li>Regularly update keyword database with new IOCs</li>
+                </ul>
+
+                <h3>⚠️ Legal Notice</h3>
+                <p>This tool is designed for authorized security testing, incident response, and forensic analysis only. Ensure proper authorization before use.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Comprehensive threat keywords database
+        const threatKeywords = {
+            powersploit: [
+                'Invoke-Mimikatz', 'Invoke-ReflectivePEInjection', 'Invoke-Shellcode', 'Invoke-DllInjection',
+                'Invoke-WmiCommand', 'Get-GPPPassword', 'Get-Keystrokes', 'Get-TimedScreenshot',
+                'Get-VaultCredential', 'Invoke-TokenManipulation', 'Invoke-CredentialInjection',
+                'Invoke-NinjaCopy', 'Out-Minidump', 'VolumeShadowCopyTools', 'Invoke-ProcessHunter',
+                'Invoke-UserHunter', 'Invoke-ShareFinder', 'Invoke-FileFinder', 'Find-LocalAdminAccess',
+                'Get-NetDomain', 'Get-NetForest', 'Get-NetDomainController', 'Get-NetUser',
+                'PowerSploit', 'PowerView', 'PowerUp', 'Privesc'
+            ],
+            'cobalt-strike': [
+                'beacon', 'cobaltstrike', 'artifact.exe', 'post-ex', 'hashdump', 'mimikatz',
+                'powershell-import', 'execute-assembly', 'inject', 'shinject', 'dllinject', 'spawnas',
+                'spawnu', 'make_token', 'steal_token', 'rev2self', 'getsystem', 'elevate', 'runasadmin',
+                'psinject', 'dcsync', 'zerologon', 'kerberoast', 'remote-exec', 'jump psexec',
+                'jump winrm', 'covertvpn', 'socks', 'browserpivot'
+            ],
+            metasploit: [
+                'meterpreter', 'msfvenom', 'exploit/multi/handler', 'windows/meterpreter',
+                'getsystem', 'hashdump', 'load kiwi', 'load mimikatz', 'ps -S lsass',
+                'migrate', 'run post', 'run autoroute', 'portfwd', 'screenshot', 'webcam_snap',
+                'keyscan_start', 'timestomp', 'clearev', 'shell', 'execute -f', 'persistence'
+            ],
+            empire: [
+                'Invoke-Empire', 'powershell/lateral_movement', 'powershell/credentials',
+                'powershell/persistence', 'Get-SecurityPackages', 'Invoke-Mimikatz',
+                'Invoke-PSInject', 'Invoke-ReflectivePEInjection', 'Invoke-EmpireRecon',
+                'Invoke-Kerberoast', 'Invoke-DCSync', 'Empire-Agent'
+            ],
+            mimikatz: [
+                'mimikatz', 'sekurlsa::logonpasswords', 'sekurlsa::tickets', 'sekurlsa::pth',
+                'kerberos::golden', 'kerberos::silver', 'kerberos::ptt', 'lsadump::sam',
+                'lsadump::secrets', 'lsadump::cache', 'lsadump::dcsync', 'vault::cred',
+                'privilege::debug', 'token::elevate', 'ts::multirdp'
+            ],
+            bloodhound: [
+                'Invoke-BloodHound', 'SharpHound', 'Invoke-ShareFinder', 'Get-NetSession',
+                'Get-NetLoggedon', 'Get-NetLocalGroup', 'Get-DomainUser', 'Get-DomainComputer',
+                'Get-DomainController', 'Get-DomainTrust', 'Get-ForestTrust', 'Get-DomainGroup',
+                'Find-DomainUserLocation', 'Find-DomainShare', 'Invoke-ACLScanner',
+                'BloodHound.exe', 'SharpHound.exe', 'SharpHound.ps1'
+            ],
+            lolbas: [
+                'certutil -decode', 'certutil -urlcache', 'bitsadmin /transfer',
+                'regsvr32 /s /u /i:', 'mshta vbscript:', 'rundll32 javascript:',
+                'wmic process call create', 'wmic /node:', 'msiexec /quiet /i http',
+                'sc create', 'sc config', 'schtasks /create', 'powershell -encodedcommand',
+                'powershell -nop -w hidden', 'powershell -exec bypass', 'cmd.exe /c echo',
+                'forfiles /p c:\\windows\\system32 /m cmd.exe /c', 'pcalua.exe -a',
+                'regasm.exe', 'regsvcs.exe', 'installutil.exe'
+            ],
+            persistence: [
+                'reg add HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+                'reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+                'New-Service', 'sc create', 'schtasks /create',
+                'HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce',
+                'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce',
+                'Winlogon\\Shell', 'Winlogon\\Userinit', 'Winlogon\\Notify',
+                'AppInit_DLLs', 'Image File Execution Options', 'Accessibility Features',
+                'Sticky Keys', 'sethc.exe', 'utilman.exe', 'magnify.exe', 'narrator.exe',
+                'osk.exe', 'DisplaySwitch.exe', 'AtBroker.exe', 'WMI Event Subscription'
+            ],
+            'lateral-movement': [
+                'psexec', 'wmiexec', 'winrm', 'dcom', 'Invoke-WmiCommand', 'Invoke-Command',
+                'Enter-PSSession', 'net use', 'net share', 'SMBExec', 'AtExec',
+                'Invoke-SMBExec', 'Invoke-PSExec', 'Invoke-DCOM', 'Invoke-WMI',
+                'winrs', 'RemotePS', 'PSRemoting', 'SharpWMI', 'SharpRDP'
+            ],
+            'privilege-escalation': [
+                'Invoke-AllChecks', 'PowerUp', 'BeRoot', 'Watson', 'JAWS',
+                'windows-exploit-suggester', 'Invoke-PrivescCheck', 'Get-System',
+                'Invoke-MS16032', 'Invoke-MS15051', 'Invoke-MS14058', 'Invoke-Tater',
+                'Invoke-SMBRelay', 'Invoke-WScriptBypassUAC', 'Invoke-EnvBypassUAC',
+                'eventvwr.exe', 'fodhelper.exe', 'computerdefaults.exe'
+            ],
+            'credential-access': [
+                'Invoke-Kerberoast', 'Invoke-ASREPRoast', 'Get-GPPPassword',
+                'Get-CachedGPPPassword', 'Get-UnattendedInstallFile', 'Get-Webconfig',
+                'Get-ApplicationHost', 'Get-SiteListPassword', 'Get-VaultCredential',
+                'cmdkey /list', 'vaultcmd', 'procdump -ma lsass.exe', 'comsvcs.dll MiniDump',
+                'ntdsutil', 'vssadmin create shadow', 'esentutl.exe /y /vss',
+                'SecretsDump', 'LaZagne', 'CredentialFileView'
+            ],
+            'defense-evasion': [
+                'powershell -encodedcommand', 'powershell -w hidden', 'powershell -nop',
+                'Invoke-Obfuscation', 'Invoke-DOSfuscation', 'amsi.dll', 'AmsiScanBuffer',
+                'Set-MpPreference -DisableRealtimeMonitoring', 'netsh advfirewall',
+                'Set-ExecutionPolicy Bypass', 'Unblock-File', 'attrib +h',
+                'timestomp', 'Clear-EventLog', 'wevtutil cl', 'Invoke-Phantom',
+                'Invoke-Reflective', 'process hollowing', 'process injection'
+            ],
+            discovery: [
+                'whoami', 'net user', 'net group', 'net localgroup', 'net accounts',
+                'nltest /domain_trusts', 'nltest /dclist', 'dsquery', 'adfind',
+                'Get-ADUser', 'Get-ADComputer', 'Get-ADGroup', 'Get-NetUser',
+                'Get-NetComputer', 'Get-NetGroup', 'ipconfig /all', 'nslookup',
+                'arp -a', 'route print', 'netstat -ano', 'tasklist', 'qwinsta',
+                'query user', 'Get-Process', 'Get-Service', 'Get-HotFix'
+            ],
+            execution: [
+                'powershell.exe', 'cmd.exe /c', 'wscript.exe', 'cscript.exe',
+                'regsvr32.exe', 'rundll32.exe', 'mshta.exe', 'wmic.exe',
+                'Invoke-Expression', 'IEX', 'Start-Process', 'Invoke-Item',
+                'DownloadString', 'DownloadFile', 'WebClient', 'Net.WebClient',
+                'Invoke-WebRequest', 'Invoke-RestMethod', 'curl.exe', 'wget.exe',
+                'certutil.exe -urlcache', 'bitsadmin /transfer'
+            ],
+            exfiltration: [
+                'Invoke-Exfiltration', 'Out-Exfiltration', 'Invoke-Mimikatz -DumpCreds',
+                'Get-Keystrokes', 'Get-TimedScreenshot', 'Invoke-PortScan',
+                'Upload', 'Start-BitsTransfer', 'Send-MailMessage', 'ftp', 'sftp',
+                'Invoke-WebRequest -Method Post', 'curl -X POST', 'wget --post-data',
+                'dns tunneling', 'base64', '[Convert]::ToBase64String',
+                'System.IO.Compression', 'Compress-Archive'
+            ]
+        };
+
+        let currentLogData = '';
+        let detectedThreats = [];
+
+        // File upload handler
+        document.getElementById('logFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                currentLogData = evt.target.result;
+                console.log('File loaded:', file.name, 'Size:', currentLogData.length);
+            };
+
+            // Read file based on extension
+            if (file.name.endsWith('.csv') || file.name.endsWith('.txt') || file.name.endsWith('.log')) {
+                reader.readAsText(file);
+            } else if (file.name.endsWith('.xml') || file.name.endsWith('.evtx')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsText(file);
+            }
+        });
+
+        // Parse CSV data
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const result = [];
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+
+                const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = values[index] || '';
+                });
+                result.push(obj);
+            }
+            return result;
+        }
+
+        // Parse EVTX/XML data
+        function parseEVTX(xmlText) {
+            const result = [];
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+
+            const events = xmlDoc.getElementsByTagName('Event');
+            for (let i = 0; i < events.length; i++) {
+                const event = events[i];
+                const eventData = {
+                    EventID: '',
+                    TimeCreated: '',
+                    Computer: '',
+                    Message: '',
+                    RawData: event.textContent
+                };
+
+                // Extract basic event info
+                const system = event.getElementsByTagName('System')[0];
+                if (system) {
+                    const eventID = system.getElementsByTagName('EventID')[0];
+                    if (eventID) eventData.EventID = eventID.textContent;
+
+                    const timeCreated = system.getElementsByTagName('TimeCreated')[0];
+                    if (timeCreated) eventData.TimeCreated = timeCreated.getAttribute('SystemTime');
+
+                    const computer = system.getElementsByTagName('Computer')[0];
+                    if (computer) eventData.Computer = computer.textContent;
+                }
+
+                // Extract event data
+                const eventDataNode = event.getElementsByTagName('EventData')[0];
+                if (eventDataNode) {
+                    eventData.Message = eventDataNode.textContent;
+                }
+
+                result.push(eventData);
+            }
+            return result;
+        }
+
+        // Main threat hunting function
+        function startThreatHunt() {
+            if (!currentLogData) {
+                alert('Please upload a log file first!');
+                return;
+            }
+
+            const huntType = document.getElementById('huntType').value;
+            const detectionStrategy = document.getElementById('detectionStrategy').value;
+            const searchDepth = document.getElementById('searchDepth').value;
+
+            // Parse log data based on format
+            let parsedData = [];
+            if (currentLogData.includes('<?xml') || currentLogData.includes('<Event')) {
+                parsedData = parseEVTX(currentLogData);
+            } else if (currentLogData.includes(',')) {
+                parsedData = parseCSV(currentLogData);
+            } else {
+                // Plain text - split by lines
+                parsedData = currentLogData.split('\n').map((line, index) => ({
+                    LineNumber: index + 1,
+                    Content: line
+                }));
+            }
+
+            // Select keywords based on hunt type
+            let keywordsToSearch = [];
+            if (huntType === 'all') {
+                // Use all keywords
+                Object.values(threatKeywords).forEach(categoryKeywords => {
+                    keywordsToSearch = keywordsToSearch.concat(categoryKeywords);
+                });
+            } else {
+                // Use only selected category keywords
+                keywordsToSearch = threatKeywords[huntType] || [];
+            }
+
+            console.log('Hunting for', keywordsToSearch.length, 'keywords in', parsedData.length, 'events');
+
+            // Search for threats
+            detectedThreats = [];
+            let eventsScanned = 0;
+
+            parsedData.forEach((event, index) => {
+                eventsScanned++;
+
+                // Convert event to searchable string
+                const searchableText = Object.values(event).join(' ').toLowerCase();
+
+                keywordsToSearch.forEach(keyword => {
+                    if (searchableText.includes(keyword.toLowerCase())) {
+                        // Determine severity based on keyword type
+                        let severity = 'medium';
+                        let category = huntType === 'all' ? detectCategory(keyword) : huntType;
+
+                        if (keyword.includes('mimikatz') || keyword.includes('dcsync') || 
+                            keyword.includes('golden') || keyword.includes('pth')) {
+                            severity = 'critical';
+                        } else if (keyword.includes('invoke-') || keyword.includes('beacon') || 
+                                   keyword.includes('meterpreter')) {
+                            severity = 'high';
+                        }
+
+                        detectedThreats.push({
+                            id: detectedThreats.length + 1,
+                            keyword: keyword,
+                            category: category,
+                            severity: severity,
+                            line: index + 1,
+                            content: Object.values(event).join(' | ').substring(0, 200),
+                            timestamp: event.TimeCreated || event.Timestamp || 'N/A'
+                        });
+                    }
+                });
+            });
+
+            // Update statistics
+            document.getElementById('eventsScanned').textContent = eventsScanned;
+            document.getElementById('threatsDetected').textContent = detectedThreats.length;
+
+            const riskScore = Math.min(100, Math.round((detectedThreats.length / eventsScanned) * 1000));
+            document.getElementById('riskScore').textContent = riskScore + '%';
+
+            let severityLevel = 'LOW';
+            if (detectedThreats.some(t => t.severity === 'critical')) {
+                severityLevel = 'CRITICAL';
+                document.getElementById('severityLevel').style.color = '#f85149';
+            } else if (detectedThreats.some(t => t.severity === 'high')) {
+                severityLevel = 'HIGH';
+                document.getElementById('severityLevel').style.color = '#db6d28';
+            } else if (detectedThreats.length > 0) {
+                severityLevel = 'MEDIUM';
+                document.getElementById('severityLevel').style.color = '#d29922';
+            } else {
+                document.getElementById('severityLevel').style.color = '#3fb950';
+            }
+            document.getElementById('severityLevel').textContent = severityLevel;
+
+            // Update export stats
+            updateExportStats();
+
+            // Display results
+            displayResults();
+        }
+
+        // Detect category for keyword
+        function detectCategory(keyword) {
+            for (const [category, keywords] of Object.entries(threatKeywords)) {
+                if (keywords.includes(keyword)) {
+                    return category;
+                }
+            }
+            return 'unknown';
+        }
+
+        // Display results
+        function displayResults() {
+            const container = document.getElementById('resultsContainer');
+
+            if (detectedThreats.length === 0) {
+                container.innerHTML = '<div class="no-results">✅ No threats detected. System appears clean.</div>';
+                return;
+            }
+
+            let html = '';
+            detectedThreats.forEach(threat => {
+                const badgeClass = `badge-${threat.severity}`;
+                html += `
+                    <div class="result-item ${threat.severity}">
+                        <div class="result-header">
+                            <span class="result-title">${threat.keyword}</span>
+                            <span class="result-badge ${badgeClass}">${threat.severity.toUpperCase()}</span>
+                        </div>
+                        <div class="result-content">${threat.content}</div>
+                        <div class="result-meta">
+                            <span>Category: ${threat.category}</span>
+                            <span>Line: ${threat.line}</span>
+                            <span>Time: ${threat.timestamp}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Reset hunt
+        function resetHunt() {
+            document.getElementById('logFile').value = '';
+            document.getElementById('huntType').value = 'all';
+            document.getElementById('detectionStrategy').value = 'keyword';
+            document.getElementById('searchDepth').value = 'light';
+
+            currentLogData = '';
+            detectedThreats = [];
+
+            document.getElementById('eventsScanned').textContent = '0';
+            document.getElementById('threatsDetected').textContent = '0';
+            document.getElementById('riskScore').textContent = '0%';
+            document.getElementById('severityLevel').textContent = 'LOW';
+            document.getElementById('severityLevel').style.color = '#3fb950';
+
+            document.getElementById('resultsContainer').innerHTML = 
+                '<div class="no-results">No threats detected yet. Upload a log file and start the hunt.</div>';
+
+            updateExportStats();
+        }
+
+        // Keyword Manager Functions
+        function addKeyword() {
+            const keyword = document.getElementById('newKeyword').value.trim();
+            const category = document.getElementById('keywordCategory').value;
+
+            if (!keyword) {
+                alert('Please enter a keyword!');
+                return;
+            }
+
+            if (!threatKeywords[category]) {
+                threatKeywords[category] = [];
+            }
+
+            if (!threatKeywords[category].includes(keyword)) {
+                threatKeywords[category].push(keyword);
+                document.getElementById('newKeyword').value = '';
+                alert(`Keyword "${keyword}" added to ${category}!`);
+                updateKeywordDisplay();
+            } else {
+                alert('Keyword already exists in this category!');
+            }
+        }
+
+        function showAllKeywords() {
+            updateKeywordDisplay();
+        }
+
+        function updateKeywordDisplay() {
+            const container = document.getElementById('keywordList');
+            let html = '';
+            let totalCount = 0;
+
+            Object.entries(threatKeywords).forEach(([category, keywords]) => {
+                keywords.forEach(keyword => {
+                    totalCount++;
+                    html += `
+                        <div class="keyword-badge">
+                            <span>${keyword}</span>
+                            <span class="remove-btn" onclick="removeKeyword('${category}', '${keyword}')">✖</span>
+                        </div>
+                    `;
+                });
+            });
+
+            container.innerHTML = html;
+            document.getElementById('totalKeywords').textContent = totalCount;
+
+            // Update category breakdown
+            let breakdown = '';
+            Object.entries(threatKeywords).forEach(([category, keywords]) => {
+                breakdown += `<div>${category}: ${keywords.length}</div>`;
+            });
+            document.getElementById('categoryBreakdown').innerHTML = breakdown;
+        }
+
+        function removeKeyword(category, keyword) {
+            const index = threatKeywords[category].indexOf(keyword);
+            if (index > -1) {
+                threatKeywords[category].splice(index, 1);
+                updateKeywordDisplay();
+            }
+        }
+
+        // Export Functions
+        function updateExportStats() {
+            const critical = detectedThreats.filter(t => t.severity === 'critical').length;
+            const high = detectedThreats.filter(t => t.severity === 'high').length;
+            const medium = detectedThreats.filter(t => t.severity === 'medium').length;
+            const low = detectedThreats.filter(t => t.severity === 'low').length;
+
+            document.getElementById('exportTotalDetections').textContent = detectedThreats.length;
+            document.getElementById('exportCritical').textContent = critical;
+            document.getElementById('exportHigh').textContent = high;
+            document.getElementById('exportMedium').textContent = medium;
+            document.getElementById('exportLow').textContent = low;
+        }
+
+        function exportToCSV() {
+            if (detectedThreats.length === 0) {
+                alert('No detections to export!');
+                return;
+            }
+
+            let csv = 'ID,Keyword,Category,Severity,Line,Timestamp,Content\n';
+            detectedThreats.forEach(threat => {
+                csv += `${threat.id},"${threat.keyword}","${threat.category}","${threat.severity}",${threat.line},"${threat.timestamp}","${threat.content.replace(/"/g, '""')}"\n`;
+            });
+
+            downloadFile(csv, 'threat_detections.csv', 'text/csv');
+        }
+
+        function exportToJSON() {
+            if (detectedThreats.length === 0) {
+                alert('No detections to export!');
+                return;
+            }
+
+            const json = JSON.stringify(detectedThreats, null, 2);
+            downloadFile(json, 'threat_detections.json', 'application/json');
+        }
+
+        function generateReport() {
+            if (detectedThreats.length === 0) {
+                alert('No detections to generate report!');
+                return;
+            }
+
+            let report = '=== ADVANCED WINDOWS FORENSIC MALWARE HUNTER - THREAT REPORT ===\n\n';
+            report += `Generated: ${new Date().toISOString()}\n`;
+            report += `Total Detections: ${detectedThreats.length}\n\n`;
+
+            report += '=== SUMMARY ===\n';
+            const critical = detectedThreats.filter(t => t.severity === 'critical').length;
+            const high = detectedThreats.filter(t => t.severity === 'high').length;
+            const medium = detectedThreats.filter(t => t.severity === 'medium').length;
+            const low = detectedThreats.filter(t => t.severity === 'low').length;
+
+            report += `Critical: ${critical}\n`;
+            report += `High: ${high}\n`;
+            report += `Medium: ${medium}\n`;
+            report += `Low: ${low}\n\n`;
+
+            report += '=== DETAILED FINDINGS ===\n\n';
+            detectedThreats.forEach((threat, index) => {
+                report += `[${index + 1}] ${threat.keyword} (${threat.severity.toUpperCase()})\n`;
+                report += `Category: ${threat.category}\n`;
+                report += `Line: ${threat.line} | Timestamp: ${threat.timestamp}\n`;
+                report += `Content: ${threat.content}\n`;
+                report += '---\n';
+            });
+
+            downloadFile(report, 'threat_report.txt', 'text/plain');
+        }
+
+        function downloadFile(content, filename, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize keyword display on load
+        window.addEventListener('load', function() {
+            updateKeywordDisplay();
+        });
+    </script>
+</body>
+</html>
